@@ -15,7 +15,7 @@ from sacn.messages.root_layer import VECTOR_DMP_SET_PROPERTY, \
 class DataPacket(RootLayer):
     def __init__(self, cid: tuple, sourceName: str, universe: int, dmxData: tuple = (), priority: int = 100,
                  sequence: int = 0, streamTerminated: bool = False, previewData: bool = False,
-                 forceSync: bool = False, sync_universe: int = 0):
+                 forceSync: bool = False, sync_universe: int = 0, StartCode: str = "0"):
         self._vector1 = VECTOR_E131_DATA_PACKET
         self._vector2 = VECTOR_DMP_SET_PROPERTY
         self.sourceName: str = sourceName
@@ -27,6 +27,7 @@ class DataPacket(RootLayer):
         self.option_ForceSync: bool = forceSync
         self.sequence = sequence
         self.dmxData = dmxData
+        self.StartCode = StartCode
         super().__init__(126 + len(dmxData), cid, VECTOR_ROOT_E131_DATA)
 
     def __str__(self):
@@ -128,7 +129,10 @@ class DataPacket(RootLayer):
         lengthDmxData = len(self._dmxData)+1
         rtrnList.extend(int_to_bytes(lengthDmxData))
         # DMX data:-----------------------------
-        rtrnList.append(0x00)  # DMX Start Code
+        if StartCode == "0":
+            rtrnList.append(0x00)  # DMX Start Code
+        elif StartCode == "DD":
+            rtrnList.append(0xDD)
         rtrnList.extend(self._dmxData)
 
         return tuple(rtrnList)
